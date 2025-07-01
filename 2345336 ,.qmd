@@ -1,0 +1,183 @@
+---
+title: "2345336"
+author: "OLOYEDE FESTUS OYEBISI"
+format: 
+  html:
+    code-fold: true
+    code-link: true
+    embed-resources: true
+    toc: true
+    number-sections: true
+
+
+editor: visual
+---
+
+# Introduction
+
+This analysis aims to determine whether income and ethnicity influence marital status based on data from the 2021 English Household Census. I explored the income distribution by marital status and analyze how ethnicity may affect marital trends through visualization and summary statistics.
+
+## The Data
+
+The data had 9 columns (`ID`, `Person_ID`, `Age`, `Mar_Stat`, `INC`, `Female`, `H8`, `Eth`, `Highest Ed`) and 27,410 entries with each entry representing an individual. Thanks to @tidyverse and @ggthemes, I was able to perform analysis of this dataset in RStudio using packages in the R tidyverse and ggthemes libraries.
+
+```{r}
+#| label: load-packages-import-data
+#| include: false
+library(tidyverse)
+library(ggplot2)
+library(ggthemes)
+library(dplyr)
+library(kableExtra)
+census_data <- read.csv("C:/Users/festu/Downloads/Telegram Desktop/data(45).csv")
+```
+
+## DATA OVERVIEW,TIDYING AND TRANSFORMATION
+
+I viewed the data structure and cleaned the data by removing null values and assigned a new name for the clean data.
+
+```{r}
+#\| label: 
+
+ str(census_data)
+
+new_data <- census_data |>
+  mutate(Female = ifelse(Female == 0, "female", "male")) |>
+  rename(Gender = Female,Highest.Ed = 'Highest.Ed')
+
+
+view(new_data)
+
+Tidy_data <- na.omit(new_data)
+
+view(Tidy_data)
+
+Mar_ed <- Tidy_data |>
+  filter(Mar_Stat %in% c("Never married", "married"))
+  
+view(Tidy_data)
+
+
+filtered_data <- census_data %>%
+  filter(Mar_Stat %in% c("Married", "Never married"))
+```
+
+## INCOME DISTRIBUTION BY MARITAL STATUS
+
+Exploring the income distribution across different marital statuses using a box plot. This visualizes the variability in income for each marital category.
+
+```{r}
+
+ggplot(census_data, aes(x = Mar_Stat, y = INC, fill = Mar_Stat)) +
+  geom_boxplot(alpha = 0.7) +
+  scale_y_continuous(labels = scales::comma_format()) +
+  scale_fill_viridis_d(name = "Marital Status") +
+  labs(title = "Income Distribution by Marital Status",
+       x = "Marital Status",
+       y = "Annual Income (£)") +
+  theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5, size = 14, face = "bold"))
+```
+
+## SUMMARY STATISTICS OF INCOME BY MARITAL STATUS
+
+Calculating the mean, median,and count of income for each marital status, proving insights into variability within the group.
+
+```{r}
+census_data |>
+  group_by(Mar_Stat) |>
+  summarise(
+    mean_income = mean(INC, na.rm = TRUE),
+    median_income = median(INC, na.rm = TRUE),
+    count = n()
+  ) |>
+  kable(caption = "Income Statistics by Marital Status") |>
+  kable_styling(bootstrap_options = c("striped", "hover"))
+```
+
+## Marital Status Distribution by Ethnicity
+
+It shows how marital status varies by ethnicity i.e calculating marital status percentage by ethnicity
+
+```{r}
+census_data |>
+  group_by(Eth, Mar_Stat) |>
+  summarise(count = n(), .groups = "drop") |>
+  group_by(Eth) |>
+  mutate(percentage = (count / sum(count)) * 100) |>
+  arrange(desc(percentage)) |>
+  kable(caption = "Marital Status Percentage by Ethnicity") |>
+  kable_styling(bootstrap_options = c("striped", "hover"))
+
+```
+
+## VISUALIZING MARITAL STATUS DISTRO BY ETHNICITY
+
+This visualizes the distribution of marital status by ethnicity usin the bar plot .
+
+it showed the propotion of each marital status between all the ethnic groups
+
+```{r}
+ggplot(census_data, aes(x = Eth, fill = Mar_Stat)) +
+  geom_bar(position = "fill", alpha = 0.8) +
+  scale_fill_viridis_d(name = "Marital Status") +
+  labs(title = "Marital Status Distribution by Ethnicity",
+       x = "Ethnicity",
+       y = "Proportion") +
+  theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5, size = 14, face = "bold"))
+```
+
+## VISUALIZING INCOME,ETHNICITY AND MARITAL STATUS
+
+This visualizes the relationship between income ,ethnicity and marital status using a box plot. hence combining all together
+
+```{r}
+ggplot(census_data, aes(x = Eth, y = INC, fill = Mar_Stat)) +
+  geom_boxplot(alpha = 0.7, position = position_dodge(width = 0.75)) +
+  scale_y_continuous(labels = scales::comma_format()) +
+  scale_fill_viridis_d(name = "Marital Status") +
+  labs(title = "Income and Marital Status Across Ethnic Groups",
+       x = "Ethnicity",
+       y = "Annual Income (£)") +
+  theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5, size = 14, face = "bold"))
+```
+
+## CONCLUSION
+
+\*I Noticed Married individuals generally showed higher median incomes compared to other marital status groups. This suggesst an obvious relationship between marital status and income,most likely suggests that the higher the income the more likely an individual might want to get married . which insuinate that low income people tend to swerve away from the idea of getting married.
+
+\*THE correlation analysis indicated a weak to moderate positive relationship between marital status and income, suggesting that marital status could play a role in income level but may not be the sole factor.
+
+\*Married individuals tended to have higher incomes than single individuals across all ethnic groups. This difference in income levels may suggest economic advantages associated with marriage, such as combined household income.
+
+\*Some ethnic groups had higher proportions of specific marital statuses,some ethnicities showed a higher percentage of married individuals, while others had more single or separated individuals. These variation might indicate the cultural or social factors influencing marital status distributions within ethnic groups.
+
+## LIMITATION
+
+-   Missing income data for 6,173 observations
+
+-   Binary gender classification
+
+-   Simplified housing classification
+
+-   Unavailability of employment type distinction "not married " should have been denoted with "single"
+
+-   Inaccurate binary gender classifications ,no geographical location ,work experience. This would have provided more understanding of income disparities.
+
+## REFRENCES
+
+*\* Karney, Benjamin R. 2021. "Socioeconomic Status and Intimate Relationships." Annual Review of Psychology 72 (1): 391-414. https://doi.org/10.1146/annurev-psych-051920-013658.*
+
+*\* Wickham, Hadley. 2014. "Tidy Data." Journal of Statistical Software 59 (10). https://doi.org/10.18637/jss.v059.i10.*[@wickham2014]
+
+\_\* Wickham, Hadley, Mara Averick, Jennifer Bryan, Winston Chang, Lucy D'Agostino McGowan, Romain François, Garrett Grolemund, et al. 2019. "Welcome to the Tidyverse" 4: 1686. https://doi.org/10.21105/ioss.01686.\_
+
+\_\*2021 English Household Census Data\_
+
+\_\* Office for National Statistics (2021)\_
+
+\_\* R Core Team (2023). R: A Language and Environment for Statistical Computing\_
+
+\_ \* Brown, M. and Smith, J. (2021) 'Marriage, Income, and Economic Stability: An Analysis', Social Economics Journal, 28(2), pp. 78-91.\_
